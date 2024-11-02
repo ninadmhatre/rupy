@@ -1,9 +1,8 @@
 """
 Function based implementation! 
 
-It works, but i have better (some may call it over engineered) solution in iter_02!
+It works, Please check class based implementation in iter_02.py
 """
-import abc
 import argparse
 import json
 import os

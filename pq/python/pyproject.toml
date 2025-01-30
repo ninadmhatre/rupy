@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "pq"
+version = "0.1.0"
+description = "parquet cli"
+authors = ["Ninad Mhatre <ninad.mhatre@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.2.3"
+fastparquet = "^2024.11.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

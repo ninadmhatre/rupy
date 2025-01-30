@@ -29,7 +29,25 @@ rwjson -r ~/s.json -k name
 rwjson -w ~/s.json -k A:1,B:"S o m e t hing"
 ```
 
-2. killer
+2. park
+
+Desc: Parquet file viewer.
+
+Create a utility to view the contents of parquet file.
+
+Usage:
+
+```bash
+$ park [--head|-h <int>] [--tail|-t <int>] [--schema|-s] [--query|-q <str>] file
+
+$ park file                # --head 10
+$ park -t 10 file          # --tail 10
+$ park -s file             # --schema 
+$ park -q "age > 10" file  # --query single col query
+```
+
+
+3. killer
 
 Desc: Kill a process by PID or Name.
 
@@ -49,7 +67,7 @@ killer -i 1234
 killer -p vscode
 ```
 
-3. myenv
+4. myenv
 
 Desc: Create, Load and View an environment file created at specific location.
 
@@ -73,7 +91,7 @@ menv -v py-a
 menv -l py-a
 ```
 
-4. fetchdb
+5. fetchdb
 
 Desc: wrapper over DB (sqlite or RDBMS) that fetches something from DB.
 

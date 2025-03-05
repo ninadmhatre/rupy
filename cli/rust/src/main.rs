@@ -1,10 +1,11 @@
 use clap::{Parser, Subcommand};
-use serde::__private::de::InPlaceSeed;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::process::exit;
+use shellexpand::tilde;
 
 #[derive(Parser, Debug)]
 #[command(propagate_version = true)]
@@ -36,7 +37,7 @@ enum Commands {
     },
 }
 
-fn get_platform_defaults(platform: String) -> Value {
+fn get_platform_defaults(platform: &str) -> Value {
     let default = json!({
         "gcp": {
             "profile_dir": "/GCP/.rupy",
@@ -56,24 +57,25 @@ fn get_platform_defaults(platform: String) -> Value {
 }
 
 // Helpers
-fn profile_dir(platform: String) -> PathBuf {
+fn profile_dir(platform: &str) -> PathBuf {
     let prof_dir = get_platform_defaults(platform)["profile_dir"]
         .as_str()
         .unwrap()
         .to_string();
 
-    PathBuf::from(prof_dir)
+    PathBuf::from(tilde(&prof_dir).to_string())
 }
 
-fn profile_file(platform: String) -> PathBuf {
+fn profile_file(platform: &str) -> PathBuf {
     PathBuf::from(profile_dir(platform)).join("env.json")
 }
 
-fn read_profile_file(platform: String) -> Value {
+fn read_profile_file(platform: &str) -> Value {
     let profile_file = profile_file(platform);
 
     if !profile_file.exists() {
-        panic!("Profile file {:?} does not exist", profile_file);
+        println!("Error: Profile file {:?} does not exist", profile_file);
+        exit(1);
     }
 
     let file_content = fs::read_to_string(profile_file).unwrap();
@@ -81,13 +83,13 @@ fn read_profile_file(platform: String) -> Value {
     json!(parsed)
 }
 
-fn write_profile_file(platform: String, data: Value) {
+fn write_profile_file(platform: &str, data: Value) {
     let profile_file = profile_file(platform);
     fs::write(profile_file, data.to_string()).unwrap();
 }
 
 // Commands
-fn init_cmd(platform: String, recreate: bool, def_profile: String) {
+fn init_cmd(platform: &str, recreate: bool, def_profile: &str) {
     let template = json!({
         "profiles": {
             "common": {"A": 1, "B": true, "C": "rw"},
@@ -98,27 +100,23 @@ fn init_cmd(platform: String, recreate: bool, def_profile: String) {
         }
     });
 
-    let profile_file = profile_file(platform.clone());
+    let profile_file = profile_file(platform);
     if profile_file.exists() && !recreate {
         println!("Error: {:?} already exist!", profile_file);
         return;
     }
 
-    fs::create_dir_all(profile_dir(platform.clone()).as_path()).unwrap();
+    fs::create_dir_all(profile_dir(platform).as_path()).unwrap();
     write_profile_file(platform, template);
 }
 
-// fn _get_set_or_default_profile(platform: &String, default: &String) -> String {
-//
-// }
-
-fn load_cmd(platform: String, profile: String) {
-    let env_data = read_profile_file(platform.clone());
+fn load_cmd(platform: &str, profile: &str) {
+    let env_data = read_profile_file(platform);
 
     let profile_name = if profile == "" {
         env_data["profiles"]["default"].to_string()
     } else {
-        profile
+        profile.to_string()
     };
 
     if !env_data["profiles"]
@@ -130,7 +128,7 @@ fn load_cmd(platform: String, profile: String) {
         return;
     }
 
-    let common_vars = env_data["profile"]["common"].as_object().unwrap();
+    let common_vars = env_data["profiles"]["common"].as_object().unwrap();
     let selected_vars = env_data["profiles"][profile_name].as_object().unwrap();
 
     let mut merged = HashMap::<String, Value>::new();
@@ -139,19 +137,19 @@ fn load_cmd(platform: String, profile: String) {
 
     merged.into_iter().for_each(|(k, v)| {
         if v.is_null() {
-            println!("unset {:?}", k);
+            println!("unset {k}");
         } else {
-            println!("export {:?}='{:?}'", k, v);
+            println!("export {k}={}", v.to_string());
         }
     })
 }
 
-fn debug_cmd(platform: String, profile: String) {
-    let env_data = read_profile_file(platform.clone());
+fn debug_cmd(platform: &str, profile: &str) {
+    let env_data = read_profile_file(platform);
     let profile_name = if profile == "" {
         env_data["profiles"]["default"].to_string()
     } else {
-        profile
+        profile.to_string()
     };
 
     println!(
@@ -161,21 +159,8 @@ fn debug_cmd(platform: String, profile: String) {
     println!("Loading values for [{:?}]", profile_name);
     println!("-------");
 
-    load_cmd(platform.clone(), profile_name.clone());
+    load_cmd(platform, &profile_name);
 }
-
-// Handlers
-// fn gcp_handler(args: Cli) {
-//     match args.command {
-//         Commands::Init {
-//             recreate,
-//             default_profile,
-//         } => init_cmd,
-//         Commands::Load { profile } => {}
-//     }
-// }
-
-// fn linux_handler(args: Cli) {}
 
 // Other
 fn get_platform() -> String {
@@ -185,17 +170,22 @@ fn get_platform() -> String {
     "linux".to_string()
 }
 
-// fn get_command_handler() -> fn(cli: &Cli) -> Result<(), String> {
-//     let platform = get_platform();
-//
-//     match platform.as_str() {
-//         "gcp" => gcp_handler,
-//         "linux" => linux_handler,
-//         _ => panic!("Unknown platform: {}", platform),
-//     }
-// }
-
 fn main() {
     let _cli = Cli::parse();
-    println!("{:?}", _cli.command);
+
+    let platform = get_platform();
+    
+    match _cli.command {
+        Commands::Load { profile } => {
+            load_cmd(&platform, &profile);
+        },
+        Commands::Init { recreate, default_profile } => {
+            println!("init with recreate={}, default_profile={}", recreate, default_profile);
+            init_cmd(&platform, recreate, &default_profile);
+        },
+        Commands::Debug { profile } => {
+            println!("debug called with {}", profile);
+            debug_cmd(&platform, &profile);
+        }
+    }
 }

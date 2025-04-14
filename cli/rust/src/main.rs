@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
 use serde_json::{json, Value};
+use shellexpand::tilde;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::process::exit;
-use shellexpand::tilde;
 
 #[derive(Parser, Debug)]
 #[command(propagate_version = true)]
@@ -174,15 +174,21 @@ fn main() {
     let _cli = Cli::parse();
 
     let platform = get_platform();
-    
+
     match _cli.command {
         Commands::Load { profile } => {
             load_cmd(&platform, &profile);
-        },
-        Commands::Init { recreate, default_profile } => {
-            println!("init with recreate={}, default_profile={}", recreate, default_profile);
+        }
+        Commands::Init {
+            recreate,
+            default_profile,
+        } => {
+            println!(
+                "init with recreate={}, default_profile={}",
+                recreate, default_profile
+            );
             init_cmd(&platform, recreate, &default_profile);
-        },
+        }
         Commands::Debug { profile } => {
             println!("debug called with {}", profile);
             debug_cmd(&platform, &profile);

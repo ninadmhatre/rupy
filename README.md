@@ -10,7 +10,7 @@ In future, I expect others can contribute other programming languages.
 
 1. Code should be easy to understand. No fancy one liners!
 2. Code must work!
-3. Add some basic tests for every code.
+3. Add (or try to add) some basic tests for every application.
 
 
 ## Contributors

@@ -23,14 +23,13 @@ fn solution_iter1() {
     let second_part = i1::Subtract { val: vec![Box::new(&three_a_b_sqr), Box::new(&b_cube)] };
     let final_val = i1::Add { val: vec![Box::new(&first_part), Box::new(&second_part)] };
 
-    println!("(a+b)^2 where a={:?} and b={:?} equals = {}", &a, &b, final_val.run());
+    println!("(a+b)^3 where a={:?} and b={:?} equals = {}", &a, &b, final_val.run());
 }
 
 /*
-iter1 is working but not the nicest way to do things. based on general coding experience, I am doing this
-as per rust , more like trying to mimic Python to Rust.
+iter1 is working but it can be improved!. This Rust code is mimicing Python style.
 
-Let's try the second approach which is deals with operator overloading, and we can restrict the passing
+Let's try the second approach which deals with operator overloading, and we can restrict the passing
 arbitrary number of arguments to Aggregate nodes (Add, Sub etc)
  */
 
@@ -49,7 +48,7 @@ fn solution_iter2() {
 
     let final_val = (&a_cube - &three_a_sqr_b) + (&three_a_b_sqr - &b_cube);
 
-    println!("(a+b)^2 where a={:?} and b={:?} equals = {}", &a, &b, final_val.run());
+    println!("(a+b)^3 where a={:?} and b={:?} equals = {}", &a, &b, final_val.run());
 }
 
 

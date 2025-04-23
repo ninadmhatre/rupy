@@ -12,7 +12,7 @@ insert could be a bulk insert into a table.
 
 This is a library.
 
-I plan to use SQLite as I never used it, so good chance to learn something new.
+I plan to use DuckDB as I never used it, so good chance to learn something new.
 
 There will be only 1 table (Trading Prices, 1 entry per day for every symbol), schema of that table.
 

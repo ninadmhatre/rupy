@@ -7,6 +7,12 @@ use worker::tasks::{AddNums, PrintRows, ReadFile};
 
 use maths::Log;
 
+// Changes
+// Worker: 
+// 1. takes tasks
+// 2. run them
+// 3. Task gives only status (Pass, Failed)
+
 fn main() {
     let mut worker = Worker::new();
     

@@ -29,4 +29,8 @@ impl Task for Log {
         
         TaskResult::Pass
     }
+
+    fn name(&self) -> String {
+        "Log".to_string()
+    }
 }

@@ -3,10 +3,10 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::Path;
 
-use tklog::{info, error, warn};
+use tklog::{info, warn};
 
 use crate::dtypes::TaskResult;
-use dtypes::{Task};
+use dtypes::Task;
 
 pub struct PrintRows {
     pub rows: u8,
@@ -16,10 +16,14 @@ pub struct PrintRows {
 impl Task for PrintRows {
     fn run(&self) -> TaskResult {
         for _ in 0..self.rows {
-            info!(format!("**** {} ****", self.msg));
+            info!(format!("{}: **** {} ****", self.name(), self.msg));
         }
 
         TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "PrintRows".to_string()
     }
 }
 
@@ -30,8 +34,17 @@ pub struct AddNums {
 
 impl Task for AddNums {
     fn run(&self) -> TaskResult {
-        info!("{} + {} = {}", self.a, self.b, self.a + self.b);
+        info!(format!(
+            "AddTask: {} + {} = {}",
+            self.a,
+            self.b,
+            self.a + self.b
+        ));
         TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "AddNums".to_string()
     }
 }
 
@@ -58,7 +71,7 @@ impl<'a> Task for ReadFile<'a> {
         }
 
         let mut contents = String::new();
-        let file_handler = OpenOptions::new().read(true).open(&self.path);
+        let file_handler = OpenOptions::new().read(true).open(self.path);
 
         if file_handler.is_err() {
             return TaskResult::Fail(format!(
@@ -70,8 +83,17 @@ impl<'a> Task for ReadFile<'a> {
 
         _ = file_handler.unwrap().read_to_string(&mut contents);
 
-        info!(format!("{:?} has {} lines", self.path, self.path.metadata().unwrap().len()));
-        
+        info!(format!(
+            "{}: {:?} has {} lines",
+            self.name(),
+            self.path,
+            self.path.metadata().unwrap().len()
+        ));
+
         TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "ReadFile".to_string()
     }
 }

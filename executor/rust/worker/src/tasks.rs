@@ -3,8 +3,10 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::Path;
 
+use tklog::{info, warn};
+
 use crate::dtypes::TaskResult;
-use dtypes::{OutputType, Task};
+use dtypes::Task;
 
 pub struct PrintRows {
     pub rows: u8,
@@ -14,10 +16,14 @@ pub struct PrintRows {
 impl Task for PrintRows {
     fn run(&self) -> TaskResult {
         for _ in 0..self.rows {
-            println!("**** {} ****", self.msg);
+            info!(format!("{}: **** {} ****", self.name(), self.msg));
         }
 
-        TaskResult::pass_flag(OutputType::Null)
+        TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "PrintRows".to_string()
     }
 }
 
@@ -28,7 +34,17 @@ pub struct AddNums {
 
 impl Task for AddNums {
     fn run(&self) -> TaskResult {
-        TaskResult::pass(Box::new(self.a + self.b), OutputType::Int)
+        info!(format!(
+            "AddTask: {} + {} = {}",
+            self.a,
+            self.b,
+            self.a + self.b
+        ));
+        TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "AddNums".to_string()
     }
 }
 
@@ -41,7 +57,7 @@ impl<'a> ReadFile<'a> {
         let path = Path::new(path_str);
 
         if !path.is_file() {
-            println!("Warning: File {:?} does not exist!", &path)
+            warn!(format!("File {:?} does not exist!", &path));
         }
 
         Self { path }
@@ -51,14 +67,14 @@ impl<'a> ReadFile<'a> {
 impl<'a> Task for ReadFile<'a> {
     fn run(&self) -> TaskResult {
         if !self.path.is_file() {
-            return TaskResult::fail(format!("{:?} file does not exist", &self.path).to_string());
+            return TaskResult::Fail(format!("{:?} file does not exist", &self.path).to_string());
         }
 
         let mut contents = String::new();
-        let file_handler = OpenOptions::new().read(true).open(&self.path);
+        let file_handler = OpenOptions::new().read(true).open(self.path);
 
         if file_handler.is_err() {
-            return TaskResult::fail(format!(
+            return TaskResult::Fail(format!(
                 "failed to read file :{:?} with err: {:?}",
                 &self.path,
                 file_handler.err()
@@ -67,6 +83,17 @@ impl<'a> Task for ReadFile<'a> {
 
         _ = file_handler.unwrap().read_to_string(&mut contents);
 
-        TaskResult::pass(Box::new(contents), OutputType::StrVal)
+        info!(format!(
+            "{}: {:?} has {} lines",
+            self.name(),
+            self.path,
+            self.path.metadata().unwrap().len()
+        ));
+
+        TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "ReadFile".to_string()
     }
 }

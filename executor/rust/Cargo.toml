@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-worker = { path = "worker"}
+worker = { path = "worker" }
+tklog = "0.2.9"
 
 [workspace]
 members = [
     "worker",
 ]
+
+[profile.release]
+opt-level = 3  # all optimizations

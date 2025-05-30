@@ -1,4 +1,5 @@
 use worker::dtypes::*;
+use tklog::{info};
 
 pub struct Log {
     pub num: u32,
@@ -23,6 +24,13 @@ impl Log {
 
 impl Task for Log {
     fn run(&self) -> TaskResult {
-        TaskResult::pass(Box::new(self.num.ilog(self.base)), OutputType::UInt)
+        let result = self.num.ilog(self.base);
+        info!(format!("Log {} of {} = {}", self.base, self.num, result));
+        
+        TaskResult::Pass
+    }
+
+    fn name(&self) -> String {
+        "Log".to_string()
     }
 }

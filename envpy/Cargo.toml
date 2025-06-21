@@ -1,0 +1,21 @@
+[package]
+name = "envpy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.40", features = ["derive"]}
+regex = "1.11.1"
+
+
+[profile.release]
+codegen-units = 1
+opt-level = "s"
+lto = true
+incremental = true
+panic = "abort"
+split-debuginfo = "packed"
+strip = "symbols"
+
+[dev-dependencies]
+tempfile = "3.20.0"
